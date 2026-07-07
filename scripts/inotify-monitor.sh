@@ -2,19 +2,15 @@
 
 set -Eeuo pipefail
 
-
 # ==========================================
 # Inotify Security Monitor
 # Real Time Monitor
 # ==========================================
 
-
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-
+# shellcheck source=scripts/common.sh
 source "$SCRIPT_DIR/common.sh"
-
-
 
 # ------------------------------------------
 # Check dependencies
@@ -22,8 +18,6 @@ source "$SCRIPT_DIR/common.sh"
 
 check_dependency inotifywait
 check_dependency mail
-
-
 
 # ------------------------------------------
 # Prepare files
@@ -35,61 +29,42 @@ touch "$QUEUE_FILE"
 
 touch "$LOG_FILE"
 
-
-
 log_info "Starting Inotify Security Monitor"
-
-
 
 # ------------------------------------------
 # Monitor function
 # ------------------------------------------
 
-process_event()
-{
+process_event() {
 
-    local DATE="$1"
-    local TIME="$2"
-    local FILE="$3"
-    local EVENT="$4"
+	local DATE="$1"
+	local TIME="$2"
+	local FILE="$3"
+	local EVENT="$4"
 
+	if [ ! -f "$FILE" ]; then
+		return
+	fi
 
-    if [ ! -f "$FILE" ]; then
-        return
-    fi
+	if ! is_monitored_extension "$FILE"; then
+		return
+	fi
 
+	HASH=""
 
-    if ! is_monitored_extension "$FILE"
-    then
-        return
-    fi
+	if [ "${ENABLE_HASH:-no}" = "yes" ]; then
+		HASH=$(calculate_hash "$FILE")
+	fi
 
+	EVENT_LINE="$DATE $TIME|$EVENT|$FILE|$HASH"
 
+	echo "$EVENT_LINE" >>"$QUEUE_FILE"
 
-    HASH=""
+	log_info "$EVENT_LINE"
 
-    if [ "${ENABLE_HASH:-no}" = "yes" ]
-    then
-        HASH=$(calculate_hash "$FILE")
-    fi
+	if [ "${ENABLE_EMAIL:-no}" = "yes" ]; then
 
-
-
-    EVENT_LINE="$DATE $TIME|$EVENT|$FILE|$HASH"
-
-
-    echo "$EVENT_LINE" >> "$QUEUE_FILE"
-
-
-
-    log_info "$EVENT_LINE"
-
-
-
-    if [ "${ENABLE_EMAIL:-no}" = "yes" ]
-    then
-
-        MESSAGE="
+		MESSAGE="
 Security event detected
 
 Host:
@@ -105,41 +80,34 @@ SHA256:
 $HASH
 "
 
-        send_email \
-        "[SECURITY][$EVENT] $(hostname)" \
-        "$MESSAGE"
+		send_email \
+			"[SECURITY][$EVENT] $(hostname)" \
+			"$MESSAGE"
 
-    fi
-
+	fi
 
 }
-
-
 
 # ------------------------------------------
 # Start monitoring
 # ------------------------------------------
 
-
 inotifywait \
--m \
--r \
--e create \
--e modify \
--e moved_to \
--e attrib \
---format '%T %w%f %e' \
---timefmt '%F %T' \
-"${WATCH_DIRS[@]}" |
+	-m \
+	-r \
+	-e create \
+	-e modify \
+	-e moved_to \
+	-e attrib \
+	--format '%T %w%f %e' \
+	--timefmt '%F %T' \
+	"${WATCH_DIRS[@]}" |
+	while read -r DATE TIME FILE EVENT; do
 
+		process_event \
+			"$DATE" \
+			"$TIME" \
+			"$FILE" \
+			"$EVENT"
 
-while read DATE TIME FILE EVENT
-do
-
-    process_event \
-    "$DATE" \
-    "$TIME" \
-    "$FILE" \
-    "$EVENT"
-
-done
+	done

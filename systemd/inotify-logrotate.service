@@ -5,8 +5,8 @@ Description=Rotate Inotify Security Monitor Logs
 [Service]
 Type=oneshot
 
-User=developer
-Group=developer
+User=root
+Group=root
 
 WorkingDirectory=/opt/inotify-security-monitor
 

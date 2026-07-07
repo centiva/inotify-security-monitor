@@ -6,8 +6,8 @@ After=network.target
 [Service]
 Type=simple
 
-User=developer
-Group=developer
+User=root
+Group=root
 
 WorkingDirectory=/opt/inotify-security-monitor
 
