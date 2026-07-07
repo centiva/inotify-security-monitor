@@ -1,0 +1,19 @@
+# Logs
+*.log
+*.queue
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*.old
+
+# Runtime data
+archive/
+
+# Python later
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
