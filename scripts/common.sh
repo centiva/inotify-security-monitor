@@ -9,6 +9,9 @@
 
 CONFIG_FILE="/etc/inotify-security-monitor.conf"
 
+if [ ! -f "$CONFIG_FILE" ]; then
+    CONFIG_FILE="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config/inotify-security-monitor.conf"
+fi
 
 # Load configuration
 
