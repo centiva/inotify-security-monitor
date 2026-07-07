@@ -1,5 +1,5 @@
 [Unit]
-Description=Inotify Security Summary Generator
+Description=Rotate Inotify Security Monitor Logs
 
 
 [Service]
@@ -10,4 +10,4 @@ Group=developer
 
 WorkingDirectory=/opt/inotify-security-monitor
 
-ExecStart=/opt/inotify-security-monitor/scripts/summary-engine.sh
+ExecStart=/opt/inotify-security-monitor/scripts/rotate-logs.sh

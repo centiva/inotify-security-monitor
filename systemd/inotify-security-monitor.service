@@ -1,0 +1,21 @@
+[Unit]
+Description=Inotify Security Monitor
+After=network.target
+
+
+[Service]
+Type=simple
+
+User=developer
+Group=developer
+
+WorkingDirectory=/opt/inotify-security-monitor
+
+ExecStart=/opt/inotify-security-monitor/scripts/inotify-monitor.sh
+
+Restart=always
+RestartSec=5
+
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Rotate Inotify Logs every 5 minutes
+
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+Unit=inotify-logrotate.service
+
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Run Inotify Summary every minute
+
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=60s
+
+Unit=inotify-summary.service
+
+
+[Install]
+WantedBy=timers.target
