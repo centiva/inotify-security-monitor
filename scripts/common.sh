@@ -1,134 +1,55 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# ==========================================
-# Inotify Security Monitor
-# Common Functions
-# ==========================================
-
-
-CONFIG_FILE="/etc/inotify-security-monitor.conf"
+CONFIG_FILE="$PROJECT_DIR/config/inotify-security-monitor.conf"
 
 if [ ! -f "$CONFIG_FILE" ]; then
-    CONFIG_FILE="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config/inotify-security-monitor.conf"
+    echo "ERROR: Configuration file not found: $CONFIG_FILE"
+    exit 1
 fi
 
-# Load configuration
-
-if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
-fi
+source "$CONFIG_FILE"
 
 
-
-# ------------------------------------------
-# Timestamp
-# ------------------------------------------
-
-timestamp()
+log()
 {
-    date "+%Y-%m-%d %H:%M:%S"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE"
 }
 
-
-
-# ------------------------------------------
-# Logging
-# ------------------------------------------
-
-log_info()
+email_rate_limit_check()
 {
-    echo "$(timestamp) [INFO] $*" | tee -a "$LOG_FILE"
-}
+    COUNTER_FILE="$PROJECT_DIR/$EMAIL_COUNTER_FILE"
+
+    CURRENT_TIME=$(date +%s)
+    HOUR_AGO=$((CURRENT_TIME - 3600))
 
 
-log_warn()
-{
-    echo "$(timestamp) [WARN] $*" | tee -a "$LOG_FILE"
-}
+    mkdir -p "$(dirname "$COUNTER_FILE")"
 
 
-log_error()
-{
-    echo "$(timestamp) [ERROR] $*" | tee -a "$LOG_FILE" >&2
-}
-
-
-
-# ------------------------------------------
-# Email
-# ------------------------------------------
-
-send_email()
-{
-    local SUBJECT="$1"
-    local MESSAGE="$2"
-
-
-    if [ "${ENABLE_EMAIL:-no}" != "yes" ]; then
-        return 0
+    if [ ! -f "$COUNTER_FILE" ]; then
+        touch "$COUNTER_FILE"
     fi
 
 
-    echo "$MESSAGE" | mail -s "$SUBJECT" "$EMAIL"
-}
+    # Remove entries older than 1 hour
+    awk -v limit="$HOUR_AGO" -F'|' '$1 >= limit' "$COUNTER_FILE" \
+        > "${COUNTER_FILE}.tmp"
+
+    mv "${COUNTER_FILE}.tmp" "$COUNTER_FILE"
 
 
-
-# ------------------------------------------
-# SHA256
-# ------------------------------------------
-
-calculate_hash()
-{
-    local FILE="$1"
+    COUNT=$(wc -l < "$COUNTER_FILE")
 
 
-    if [ -f "$FILE" ]; then
-        sha256sum "$FILE" | awk '{print $1}'
-    fi
-}
-
-
-
-# ------------------------------------------
-# Dependency check
-# ------------------------------------------
-
-check_dependency()
-{
-    local CMD="$1"
-
-
-    if ! command -v "$CMD" >/dev/null 2>&1
-    then
-        log_error "Missing dependency: $CMD"
+    if [ "$COUNT" -ge "$MAX_EMAILS_PER_HOUR" ]; then
         return 1
     fi
 
 
+    echo "$CURRENT_TIME|email" >> "$COUNTER_FILE"
+
     return 0
-}
-
-
-
-# ------------------------------------------
-# File extension check
-# ------------------------------------------
-
-is_monitored_extension()
-{
-    local FILE="$1"
-
-
-    for EXT in "${WATCH_EXTENSIONS[@]}"
-    do
-        if [[ "$FILE" == *."$EXT" ]]
-        then
-            return 0
-        fi
-    done
-
-
-    return 1
 }

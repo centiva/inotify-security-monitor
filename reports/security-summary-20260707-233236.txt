@@ -1,0 +1,29 @@
+=====================================
+INOTIFY SECURITY SUMMARY REPORT
+=====================================
+
+Generated:
+Tue Jul  7 11:32:36 PM EEST 2026
+
+Total events:
+3
+
+Event Types
+-----------
+      1 CREATE
+      1 DELETE
+      1 MODIFY
+
+Affected Files
+--------------
+/tmp/test.php
+/tmp/shell.php
+/tmp/old.php
+
+SHA256
+------
+abc123
+def456
+789abc
+
+=====================================
