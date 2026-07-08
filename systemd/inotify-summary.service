@@ -5,8 +5,8 @@ Description=Inotify Security Summary Generator
 [Service]
 Type=oneshot
 
-User=developer
-Group=developer
+User=root
+Group=root
 
 WorkingDirectory=/opt/inotify-security-monitor
 
