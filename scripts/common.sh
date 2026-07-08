@@ -58,7 +58,7 @@ check_dependency() {
 }
 
 # ==========================================
-# File helpers
+# File filtering & helpers
 # ==========================================
 
 calculate_hash() {
@@ -72,22 +72,103 @@ calculate_hash() {
 }
 
 is_monitored_extension() {
-	FILE="$1"
 
-	EXT="${FILE##*.}"
+    local FILE="$1"
+    local EXT="${FILE##*.}"
 
-	case "$EXT" in
+    EXT="${EXT,,}"
 
-	php | php3 | php4 | php5 | phtml | inc)
-		return 0
-		;;
+    for item in "${MONITORED_EXTENSIONS[@]}"; do
+        if [ "$EXT" = "$item" ]; then
+            return 0
+        fi
+    done
 
-	*)
-		return 1
-		;;
-
-	esac
+    return 1
 }
+
+is_excluded_extension() {
+
+    local FILE="$1"
+    local EXT="${FILE##*.}"
+
+    EXT="${EXT,,}"
+
+    for item in "${EXCLUDE_EXTENSIONS[@]}"; do
+        if [ "$EXT" = "$item" ]; then
+            FILTER_REASON="excluded_extension"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+is_excluded_file() {
+
+    local FILE="$1"
+    local NAME
+
+    NAME="$(basename "$FILE")"
+
+    for item in "${EXCLUDE_FILES[@]}"; do
+        if [ "$NAME" = "$item" ]; then
+            FILTER_REASON="excluded_file"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+is_excluded_directory() {
+
+    local FILE="$1"
+
+    IFS='/' read -ra PARTS <<< "$FILE"
+
+    for part in "${PARTS[@]}"; do
+
+        for item in "${EXCLUDE_DIRS[@]}"; do
+
+            if [ "$part" = "$item" ]; then
+                FILTER_REASON="excluded_directory"
+                return 0
+            fi
+
+        done
+
+    done
+
+    return 1
+}
+
+should_monitor_file() {
+
+    local FILE="$1"
+
+    FILTER_REASON=""
+
+    if is_excluded_directory "$FILE"; then
+        return 1
+    fi
+
+    if is_excluded_file "$FILE"; then
+        return 1
+    fi
+
+    if is_excluded_extension "$FILE"; then
+        return 1
+    fi
+
+    if ! is_monitored_extension "$FILE"; then
+        FILTER_REASON="not_monitored_extension"
+        return 1
+    fi
+
+    return 0
+}
+
 
 # ==========================================
 # Email

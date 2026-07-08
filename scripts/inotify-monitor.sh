@@ -46,9 +46,11 @@ process_event() {
 		return
 	fi
 
-	if ! is_monitored_extension "$FILE"; then
+	if ! should_monitor_file "$FILE"; then
+		log_info "Ignored: $FILE ($FILTER_REASON)"
 		return
 	fi
+
 
 	HASH=""
 
