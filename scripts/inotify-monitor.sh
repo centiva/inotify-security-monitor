@@ -47,7 +47,7 @@ process_event() {
 	fi
 
 	if ! should_monitor_file "$FILE"; then
-		log_info "Ignored: $FILE ($FILTER_REASON)"
+		log_filter "$FILE"
 		return
 	fi
 

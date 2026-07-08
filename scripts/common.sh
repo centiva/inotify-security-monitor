@@ -20,8 +20,186 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
+
+array_contains() {
+
+    local VALUE="$1"
+    shift
+
+    local ITEM
+
+    for ITEM in "$@"; do
+
+        if [ "$ITEM" = "$VALUE" ]; then
+            return 0
+        fi
+
+    done
+
+    return 1
+}
+
+build_filter_lists() {
+
+    #
+    # Directories
+    #
+
+    ALL_EXCLUDE_DIRS=("${DEFAULT_EXCLUDE_DIRS[@]}")
+
+    for ITEM in "${EXCLUDE_DIRS[@]}"; do
+
+        if ! array_contains "$ITEM" "${ALL_EXCLUDE_DIRS[@]}"; then
+            ALL_EXCLUDE_DIRS+=("$ITEM")
+        fi
+
+    done
+
+    #
+    # Files
+    #
+
+    ALL_EXCLUDE_FILES=("${DEFAULT_EXCLUDE_FILES[@]}")
+
+    for ITEM in "${EXCLUDE_FILES[@]}"; do
+
+        if ! array_contains "$ITEM" "${ALL_EXCLUDE_FILES[@]}"; then
+            ALL_EXCLUDE_FILES+=("$ITEM")
+        fi
+
+    done
+
+    #
+    # Extensions
+    #
+
+    ALL_EXCLUDE_EXTENSIONS=("${DEFAULT_EXCLUDE_EXTENSIONS[@]}")
+
+    for ITEM in "${EXCLUDE_EXTENSIONS[@]}"; do
+
+        if ! array_contains "$ITEM" "${ALL_EXCLUDE_EXTENSIONS[@]}"; then
+            ALL_EXCLUDE_EXTENSIONS+=("$ITEM")
+        fi
+
+    done
+}
+
+validate_configuration() {
+
+    if [ "${#WATCH_DIRS[@]}" -eq 0 ]; then
+        echo "ERROR: WATCH_DIRS is empty."
+        exit 1
+    fi
+
+    if [ "${#MONITORED_EXTENSIONS[@]}" -eq 0 ]; then
+        echo "ERROR: MONITORED_EXTENSIONS is empty."
+        exit 1
+    fi
+
+    if [ -z "$LOG_FILE" ]; then
+        echo "ERROR: LOG_FILE is not configured."
+        exit 1
+    fi
+
+    if [ -z "$QUEUE_FILE" ]; then
+        echo "ERROR: QUEUE_FILE is not configured."
+        exit 1
+    fi
+
+}
+
 # shellcheck source=/dev/null
 source "$CONFIG_FILE"
+build_filter_lists
+validate_configuration
+
+# ==========================================
+# Built-in filtering rules
+# ==========================================
+
+DEFAULT_EXCLUDE_DIRS=(
+    ".git"
+    ".svn"
+    ".hg"
+
+    "vendor"
+    "node_modules"
+
+    "__pycache__"
+)
+
+DEFAULT_EXCLUDE_FILES=(
+    ".DS_Store"
+    "Thumbs.db"
+)
+
+DEFAULT_EXCLUDE_EXTENSIONS=(
+    jpg
+    jpeg
+    png
+    gif
+    webp
+    bmp
+    svg
+    ico
+
+    mp3
+    mp4
+    mov
+    avi
+)
+
+
+
+# ==========================================
+# Built-in filtering rules
+# ==========================================
+
+DEFAULT_EXCLUDE_DIRS=(
+    ".git"
+    ".svn"
+    ".hg"
+
+    "vendor"
+    "node_modules"
+
+    "cache"
+    "tmp"
+
+    ".well-known"
+
+    "__pycache__"
+)
+
+DEFAULT_EXCLUDE_EXTENSIONS=(
+    jpg
+    jpeg
+    png
+    gif
+    webp
+    bmp
+    svg
+    ico
+
+    css
+    js
+    map
+
+    pdf
+    zip
+    gz
+    tar
+
+    mp3
+    mp4
+    avi
+    mov
+
+    log
+)
+
+
+
 
 # ==========================================
 # Logging
@@ -42,6 +220,11 @@ log_warning() {
 
 log_error() {
 	log "[ERROR] $1"
+}
+
+log_filter() {
+    local FILE="$1"
+    log_info "Ignored: $FILE | Reason: $FILTER_REASON"
 }
 
 # ==========================================
@@ -74,34 +257,46 @@ calculate_hash() {
 is_monitored_extension() {
 
     local FILE="$1"
-    local EXT="${FILE##*.}"
+    local EXT
 
+    EXT="${FILE##*.}"
     EXT="${EXT,,}"
 
-    for item in "${MONITORED_EXTENSIONS[@]}"; do
-        if [ "$EXT" = "$item" ]; then
+    local ITEM
+
+    for ITEM in "${MONITORED_EXTENSIONS[@]}"; do
+
+        if [ "${ITEM,,}" = "$EXT" ]; then
             return 0
         fi
+
     done
 
     return 1
+
 }
 
 is_excluded_extension() {
 
     local FILE="$1"
-    local EXT="${FILE##*.}"
+    local EXT
 
+    EXT="${FILE##*.}"
     EXT="${EXT,,}"
 
-    for item in "${EXCLUDE_EXTENSIONS[@]}"; do
-        if [ "$EXT" = "$item" ]; then
+    local ITEM
+
+    for ITEM in "${ALL_EXCLUDE_EXTENSIONS[@]}"; do
+
+        if [ "$EXT" = "$ITEM" ]; then
             FILTER_REASON="excluded_extension"
             return 0
         fi
+
     done
 
     return 1
+
 }
 
 is_excluded_file() {
@@ -111,14 +306,19 @@ is_excluded_file() {
 
     NAME="$(basename "$FILE")"
 
-    for item in "${EXCLUDE_FILES[@]}"; do
-        if [ "$NAME" = "$item" ]; then
+    local ITEM
+
+    for ITEM in "${ALL_EXCLUDE_FILES[@]}"; do
+
+        if [ "$NAME" = "$ITEM" ]; then
             FILTER_REASON="excluded_file"
             return 0
         fi
+
     done
 
     return 1
+
 }
 
 is_excluded_directory() {
@@ -127,11 +327,14 @@ is_excluded_directory() {
 
     IFS='/' read -ra PARTS <<< "$FILE"
 
-    for part in "${PARTS[@]}"; do
+    local PART
+    local DIR
 
-        for item in "${EXCLUDE_DIRS[@]}"; do
+    for PART in "${PARTS[@]}"; do
 
-            if [ "$part" = "$item" ]; then
+        for DIR in "${ALL_EXCLUDE_DIRS[@]}"; do
+
+            if [ "$PART" = "$DIR" ]; then
                 FILTER_REASON="excluded_directory"
                 return 0
             fi
@@ -141,6 +344,7 @@ is_excluded_directory() {
     done
 
     return 1
+
 }
 
 should_monitor_file() {
@@ -167,6 +371,7 @@ should_monitor_file() {
     fi
 
     return 0
+
 }
 
 
