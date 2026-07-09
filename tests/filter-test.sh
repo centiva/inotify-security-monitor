@@ -9,6 +9,10 @@ FILES=(
 "/tmp/vendor/test.php"
 )
 
+EXCLUDE_DIR_PATTERNS=(
+    "*/bfnetwork/*"
+)
+
 for FILE in "${FILES[@]}"
 do
 
