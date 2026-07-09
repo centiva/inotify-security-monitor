@@ -73,15 +73,76 @@ show_status() {
 
 check_config() {
 
-    echo "Checking configuration..."
+    echo
+    echo "Configuration Check"
     echo
 
-    export CONFIG_FILE="$PROJECT_ROOT/config/inotify-security-monitor.conf"
+    CONFIG_FILE="$PROJECT_ROOT/config/inotify-security-monitor.conf"
 
-    source "$PROJECT_ROOT/scripts/common.sh"
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo "✗ Configuration file missing"
+        exit 1
+    fi
+
+    echo "✓ Configuration file found"
+
+
+    export CONFIG_FILE
+
+    if source "$PROJECT_ROOT/scripts/common.sh"; then
+
+        echo "✓ Configuration loaded"
+
+    else
+
+        echo "✗ Configuration error"
+        exit 1
+
+    fi
+
 
     echo
-    echo "Configuration OK"
+    echo "Monitored directories:"
+
+    awk '
+    /^WATCH_DIRS=/ {flag=1; next}
+    /^\)/ {flag=0}
+    flag && /"/ {
+        gsub(/"/,"")
+        print "  "$1
+    }
+    ' "$CONFIG_FILE"
+
+
+    echo
+    echo "Exclude directories:"
+
+    awk '
+    /^EXCLUDE_DIRS=/ {flag=1; next}
+    /^\)/ {flag=0}
+    flag && /"/ {
+        gsub(/"/,"")
+        print "  "$1
+    }
+    ' "$CONFIG_FILE"
+
+
+    echo
+    echo "Exclude patterns:"
+
+    awk '
+    /^EXCLUDE_DIR_PATTERNS=/ {flag=1; next}
+    /^\)/ {flag=0}
+    flag && /"/ {
+        gsub(/"/,"")
+        print "  "$1
+    }
+    ' "$CONFIG_FILE"
+
+
+    echo
+    echo "Status: OK"
 
 }
 
