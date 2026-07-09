@@ -161,16 +161,101 @@ build_filter_lists() {
 
 
 # ==========================================
+# Configuration validation
+# ==========================================
+
+validate_configuration() {
+
+    local ERRORS=0
+
+
+    #
+    # Required arrays
+    #
+
+    if [ "${#WATCH_DIRS[@]}" -eq 0 ]; then
+        echo "ERROR: WATCH_DIRS is empty."
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+    if [ "${#WATCH_EXTENSIONS[@]}" -eq 0 ]; then
+        echo "ERROR: WATCH_EXTENSIONS is empty."
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+    #
+    # Watch directories
+    #
+
+    for DIR in "${WATCH_DIRS[@]}"; do
+
+        if [ ! -d "$DIR" ]; then
+            echo "ERROR: Watch directory does not exist: $DIR"
+            ERRORS=$((ERRORS+1))
+        fi
+
+    done
+
+
+    #
+    # Log configuration
+    #
+
+    if [ -z "${LOG_FILE:-}" ]; then
+        echo "ERROR: LOG_FILE is not configured."
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+    if [ -z "${QUEUE_FILE:-}" ]; then
+        echo "ERROR: QUEUE_FILE is not configured."
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+    #
+    # Email validation
+    #
+
+    if [ "${EMAIL_ENABLED:-false}" = "true" ]; then
+
+        if [ -z "${EMAIL_TO:-}" ]; then
+            echo "ERROR: EMAIL_TO is empty while email is enabled."
+            ERRORS=$((ERRORS+1))
+        fi
+
+        if [ -z "${SMTP_SERVER:-}" ]; then
+            echo "ERROR: SMTP_SERVER is empty while email is enabled."
+            ERRORS=$((ERRORS+1))
+        fi
+
+    fi
+
+
+    if [ "$ERRORS" -gt 0 ]; then
+        echo "Configuration validation failed: $ERRORS error(s)"
+        return 1
+    fi
+
+
+    echo "Configuration validation passed."
+    return 0
+}
+
+# ==========================================
 # Load configuration
 # ==========================================
 
 # shellcheck source=/dev/null
-source "$CONFIG_FILE"
-
-
 # Build final lists AFTER defaults + config exist
 
+source "$CONFIG_FILE"
+
 build_filter_lists
+
+validate_configuration || exit 1
 
 
 # ==========================================

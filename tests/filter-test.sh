@@ -2,35 +2,9 @@
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-
-# Test configuration
-WATCH_EXTENSIONS=(
-    "php"
-    "phtml"
-    "sh"
-    "js"
-)
-
-EXCLUDE_DIRS=()
-EXCLUDE_FILES=()
-EXCLUDE_EXTENSIONS=()
-
-EXCLUDE_DIR_PATTERNS=(
-    "*/cache/*"
-    "*/vendor/*"
-)
-
-EXCLUDE_FILE_PATTERNS=()
-EXCLUDE_PATH_PATTERNS=()
+export CONFIG_FILE="$PROJECT_ROOT/tests/test-config.conf"
 
 source "$PROJECT_ROOT/scripts/common.sh"
-
-EXCLUDE_DIR_PATTERNS=(
-    "*/cache/*"
-    "*/vendor/*"
-)
-
-build_filter_lists
 
 
 FILES=(
@@ -39,6 +13,7 @@ FILES=(
 "/tmp/cache/index.php"
 "/tmp/vendor/test.php"
 )
+
 
 for FILE in "${FILES[@]}"
 do
