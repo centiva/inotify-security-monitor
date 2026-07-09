@@ -157,6 +157,157 @@ test_filter() {
 }
 
 
+doctor() {
+
+    local ERRORS=0
+
+    echo
+    echo "Inotify Security Monitor Doctor"
+    echo
+    
+    show_version
+    echo
+    echo "System:"
+
+    if command -v bash >/dev/null; then
+        echo "  ✓ Bash available"
+    else
+        echo "  ✗ Bash missing"
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+    echo
+    echo "Dependencies:"
+
+
+    if command -v inotifywait >/dev/null; then
+        echo "  ✓ inotify-tools installed"
+    else
+        echo "  ✗ inotify-tools missing"
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+    if command -v mail >/dev/null; then
+        echo "  ✓ mail command available"
+    else
+        echo "  ⚠ mail command missing"
+    fi
+
+
+
+    echo
+    echo "Service:"
+
+
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        echo "  ✓ Service running"
+    else
+        echo "  ✗ Service stopped"
+        ERRORS=$((ERRORS+1))
+    fi
+
+
+
+    echo
+    echo "Configuration:"
+
+
+    CONFIG_FILE="$PROJECT_ROOT/config/inotify-security-monitor.conf"
+
+
+    if [ -f "$CONFIG_FILE" ]; then
+
+        echo "  ✓ Configuration file found"
+
+    else
+
+        echo "  ✗ Configuration missing"
+        ERRORS=$((ERRORS+1))
+
+    fi
+
+
+
+    echo
+    echo "Monitoring:"
+
+
+    if [ -f "$CONFIG_FILE" ]; then
+
+        WATCH_DIR=$(awk '
+        /^WATCH_DIRS=/ {flag=1; next}
+        /^\)/ {flag=0}
+        flag && /"/ {
+            gsub(/"/,"")
+            print $1
+            exit
+        }' "$CONFIG_FILE")
+
+
+        if [ -d "$WATCH_DIR" ]; then
+
+            echo "  ✓ Watch directory accessible"
+
+        else
+
+            echo "  ✗ Missing:"
+            echo "    $WATCH_DIR"
+            ERRORS=$((ERRORS+1))
+
+        fi
+
+    fi
+
+
+
+    echo
+    echo "Resources:"
+
+
+    DISK=$(df "$PROJECT_ROOT" | awk 'NR==2 {print $5}' | tr -d '%')
+
+
+    if [ "$DISK" -lt 90 ]; then
+
+        echo "  ✓ Disk space OK ($DISK%)"
+
+    else
+
+        echo "  ⚠ Disk usage high ($DISK%)"
+
+    fi
+
+echo
+echo "Logs:"
+
+if [ -d "$PROJECT_ROOT/logs" ]; then
+    echo "  ✓ Log directory exists"
+else
+    echo "  ✗ Log directory missing"
+    ERRORS=$((ERRORS+1))
+fi
+
+    echo
+
+    if [ "$ERRORS" -eq 0 ]; then
+
+        echo "Result:"
+        echo "  HEALTHY"
+
+    else
+
+        echo "Result:"
+        echo "  ERRORS FOUND: $ERRORS"
+
+        return 1
+
+    fi
+
+}
+
+
 usage() {
 
 cat <<EOF
@@ -172,7 +323,7 @@ Commands:
   status         Show service status
   check-config   Validate configuration
   test-filter    Test filtering rules
-
+  doctor         Run system health check
 
 EOF
 
@@ -195,6 +346,10 @@ case "$1" in
 
     test-filter)
         test_filter
+        ;;
+
+    doctor)
+        doctor
         ;;
 
     *)
