@@ -47,6 +47,23 @@ build_filter_lists() {
 
     ALL_EXCLUDE_DIRS=("${DEFAULT_EXCLUDE_DIRS[@]}")
 
+	ALL_EXCLUDE_DIR_PATTERNS=()
+	
+	for ITEM in "${EXCLUDE_DIR_PATTERNS[@]}"; do
+	    if [ -n "$ITEM" ]; then
+	        ALL_EXCLUDE_DIR_PATTERNS+=("$ITEM")
+	    fi
+	done
+
+	ALL_EXCLUDE_FILE_PATTERNS=()
+	
+	for ITEM in "${EXCLUDE_FILE_PATTERNS[@]}"; do
+	    if [ -n "$ITEM" ]; then
+	        ALL_EXCLUDE_FILE_PATTERNS+=("$ITEM")
+	    fi
+	done
+
+
     for ITEM in "${EXCLUDE_DIRS[@]}"; do
 
         if ! array_contains "$ITEM" "${ALL_EXCLUDE_DIRS[@]}"; then
@@ -170,6 +187,10 @@ DEFAULT_EXCLUDE_DIRS=(
 
     "__pycache__"
 )
+
+DEFAULT_EXCLUDE_DIR_PATTERNS=()
+DEFAULT_EXCLUDE_FILE_PATTERNS=()
+DEFAULT_EXCLUDE_PATH_PATTERNS=()
 
 DEFAULT_EXCLUDE_EXTENSIONS=(
     jpg
@@ -321,6 +342,13 @@ is_excluded_file() {
 
 }
 
+matches_pattern() {
+    local FILE="$1"
+    local PATTERN="$2"
+
+    [[ "$FILE" == $PATTERN ]]
+}
+
 is_excluded_directory() {
 
     local FILE="$1"
@@ -333,7 +361,15 @@ is_excluded_directory() {
     for PART in "${PARTS[@]}"; do
 
         for DIR in "${ALL_EXCLUDE_DIRS[@]}"; do
-
+		
+		for PATTERN in "${ALL_EXCLUDE_DIR_PATTERNS[@]}"; do
+		
+		    if matches_pattern "$FILE" "$PATTERN"; then
+		        FILTER_REASON="excluded_directory_pattern"
+		        return 0
+		    fi
+		
+		done
             if [ "$PART" = "$DIR" ]; then
                 FILTER_REASON="excluded_directory"
                 return 0
