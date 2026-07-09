@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+VERSION_FILE="$PROJECT_ROOT/VERSION"
+SERVICE_NAME="inotify-security-monitor"
+
+show_version() {
+
+    if [ -f "$VERSION_FILE" ]; then
+        echo "Inotify Security Monitor"
+        echo "Version: $(cat "$VERSION_FILE")"
+    else
+        echo "Version: unknown"
+    fi
+
+}
+
+
+show_status() {
+
+    show_version
+
+    echo
+    echo "Service:"
+
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        echo "  Status: RUNNING"
+    else
+        echo "  Status: STOPPED"
+    fi
+
+
+    PID=$(systemctl show "$SERVICE_NAME" \
+        --property MainPID \
+        --value)
+
+    if [ "$PID" != "0" ]; then
+        echo "  PID: $PID"
+    fi
+
+
+    echo
+    echo "Monitoring directories:"
+
+    CONFIG_FILE="$PROJECT_ROOT/config/inotify-security-monitor.conf"
+
+    if [ -f "$CONFIG_FILE" ]; then
+
+        awk '
+        /^WATCH_DIRS=/ {flag=1; next}
+        /^\)/ {flag=0}
+        flag && /"/ {
+            gsub(/"/,"")
+            print "  "$1
+        }
+        ' "$CONFIG_FILE"
+
+    else
+
+        echo "  Configuration file missing."
+
+    fi
+
+
+    echo
+    echo "Logs:"
+    echo "  $PROJECT_ROOT/logs/inotify-security-monitor.log"
+
+}
+
+
+
+check_config() {
+
+    echo "Checking configuration..."
+    echo
+
+    export CONFIG_FILE="$PROJECT_ROOT/config/inotify-security-monitor.conf"
+
+    source "$PROJECT_ROOT/scripts/common.sh"
+
+    echo
+    echo "Configuration OK"
+
+}
+
+
+test_filter() {
+
+    echo "Running filter tests..."
+    echo
+
+    "$PROJECT_ROOT/tests/filter-test.sh"
+
+}
+
+
+usage() {
+
+cat <<EOF
+
+Usage:
+
+  ./ismctl <command>
+
+
+Commands:
+
+  version        Show installed version
+  status         Show service status
+  check-config   Validate configuration
+  test-filter    Test filtering rules
+
+
+EOF
+
+}
+
+
+case "$1" in
+
+    version)
+        show_version
+        ;;
+
+    status)
+        show_status
+        ;;
+
+    check-config)
+        check_config
+        ;;
+
+    test-filter)
+        test_filter
+        ;;
+
+    *)
+        usage
+        exit 1
+        ;;
+
+esac
