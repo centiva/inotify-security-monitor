@@ -264,7 +264,9 @@ build_filter_lists()
 
     ALL_EXCLUDE_DIRS=("${DEFAULT_EXCLUDE_DIRS[@]}")
 
-    for ITEM in "${EXCLUDE_DIRS[@]:-}"; do
+    for ITEM in "${EXCLUDE_DIRS[@]}"; do
+
+        [ -z "$ITEM" ] && continue
 
         if ! array_contains "$ITEM" "${ALL_EXCLUDE_DIRS[@]}"; then
             ALL_EXCLUDE_DIRS+=("$ITEM")
@@ -272,17 +274,18 @@ build_filter_lists()
 
     done
 
-
     #
     # Directory patterns
     #
 
     ALL_EXCLUDE_DIR_PATTERNS=("${DEFAULT_EXCLUDE_DIR_PATTERNS[@]}")
 
-    for ITEM in "${EXCLUDE_DIR_PATTERNS[@]:-}"; do
+    for ITEM in "${EXCLUDE_DIRS[@]}"; do
 
-        if [ -n "$ITEM" ]; then
-            ALL_EXCLUDE_DIR_PATTERNS+=("$ITEM")
+        [ -z "$ITEM" ] && continue
+
+        if ! array_contains "$ITEM" "${ALL_EXCLUDE_DIRS[@]}"; then
+            ALL_EXCLUDE_DIRS+=("$ITEM")
         fi
 
     done
@@ -324,10 +327,12 @@ build_filter_lists()
 
     ALL_EXCLUDE_EXTENSIONS=("${DEFAULT_EXCLUDE_EXTENSIONS[@]}")
 
-    for ITEM in "${EXCLUDE_EXTENSIONS[@]:-}"; do
+    for ITEM in "${EXCLUDE_DIRS[@]}"; do
 
-        if ! array_contains "$ITEM" "${ALL_EXCLUDE_EXTENSIONS[@]}"; then
-            ALL_EXCLUDE_EXTENSIONS+=("$ITEM")
+        [ -z "$ITEM" ] && continue
+
+        if ! array_contains "$ITEM" "${ALL_EXCLUDE_DIRS[@]}"; then
+            ALL_EXCLUDE_DIRS+=("$ITEM")
         fi
 
     done
