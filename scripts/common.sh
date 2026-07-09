@@ -91,7 +91,7 @@ validate_configuration() {
         exit 1
     fi
 
-    if [ "${#MONITORED_EXTENSIONS[@]}" -eq 0 ]; then
+    if [ "${#WATCH_EXTENSIONS[@]}" -eq 0 ]; then
         echo "ERROR: MONITORED_EXTENSIONS is empty."
         exit 1
     fi
