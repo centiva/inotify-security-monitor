@@ -216,6 +216,8 @@ DEFAULT_EXCLUDE_EXTENSIONS=(
     mov
     avi
 
+    css
+
 )
 
 
