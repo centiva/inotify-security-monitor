@@ -11,9 +11,12 @@
 # Runtime data
 archive/
 
-# Python later
+# Python
 __pycache__/
 *.pyc
 
 # IDE
 .vscode/
+
+# Generated reports
+reports/*.txt
