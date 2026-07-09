@@ -92,7 +92,7 @@ validate_configuration() {
     fi
 
     if [ "${#WATCH_EXTENSIONS[@]}" -eq 0 ]; then
-        echo "ERROR: MONITORED_EXTENSIONS is empty."
+        echo "ERROR: WATCH_EXTENSIONS is empty."
         exit 1
     fi
 
@@ -264,7 +264,7 @@ is_monitored_extension() {
 
     local ITEM
 
-    for ITEM in "${MONITORED_EXTENSIONS[@]}"; do
+    for ITEM in "${WATCH_EXTENSIONS[@]}"; do
 
         if [ "${ITEM,,}" = "$EXT" ]; then
             return 0
