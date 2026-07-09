@@ -459,15 +459,12 @@ load_configuration()
 # Pattern matching
 #===============================================================================
 
-matches_pattern()
-{
+matches_pattern() {
 
     local FILE="$1"
     local PATTERN="$2"
 
-
-  # shellcheck disable=SC2053
-    [[ "$FILE" == $PATTERN ]]
+    [[ "$FILE" == *$PATTERN* ]]
 
 }
 
