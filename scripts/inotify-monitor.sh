@@ -64,7 +64,8 @@ process_event() {
 
 	log_info "$EVENT_LINE"
 
-	if [ "${ENABLE_EMAIL:-no}" = "yes" ] && [[ "$EVENT" != *ATTRIB* ]]; then
+        if should_send_email "$EVENT" "$FILE"; then
+
 
 		MESSAGE="
 Security event detected
