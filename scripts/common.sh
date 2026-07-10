@@ -232,23 +232,24 @@ DEFAULT_EXCLUDE_FILE_PATTERNS=()
 # Helper functions
 #===============================================================================
 
+
+
+###############################################################################
+# Generic Helpers
+###############################################################################
+
 array_contains()
 {
     local SEARCH="$1"
-
     shift
 
+    [[ $# -eq 0 ]] && return 1
 
     local ITEM
 
     for ITEM in "$@"; do
-
-        if [[ "$ITEM" == "$SEARCH" ]]; then
-            return 0
-        fi
-
+        [[ "$ITEM" == "$SEARCH" ]] && return 0
     done
-
 
     return 1
 }
