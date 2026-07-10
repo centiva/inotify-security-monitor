@@ -175,6 +175,80 @@ send_email()
 
 
 #===============================================================================
+# Smart notification engine
+#===============================================================================
+
+get_file_extension()
+{
+    local FILE="$1"
+
+    basename "$FILE" | awk -F. 'NF>1 {print tolower($NF)}'
+}
+
+
+is_email_event()
+{
+    local EVENT="$1"
+
+    array_contains "$EVENT" "${EMAIL_EVENTS[@]}"
+}
+
+
+is_email_extension()
+{
+    local FILE="$1"
+
+    local EXT
+    EXT=$(get_file_extension "$FILE")
+
+    array_contains "$EXT" "${EMAIL_EXTENSIONS[@]}"
+}
+
+
+is_critical_file()
+{
+    local FILE="$1"
+
+    local NAME
+    NAME=$(basename "$FILE")
+
+    array_contains "$NAME" "${EMAIL_CRITICAL_FILES[@]}"
+}
+
+
+should_send_email()
+{
+    local EVENT="$1"
+    local FILE="$2"
+
+
+    if [ "${EMAIL_ENABLED:-false}" != "true" ]; then
+        return 1
+    fi
+
+
+    # Critical files always notify
+    if is_critical_file "$FILE"; then
+        return 0
+    fi
+
+
+    # Check event type
+    if ! is_email_event "$EVENT"; then
+        return 1
+    fi
+
+
+    # Check extension
+    if ! is_email_extension "$FILE"; then
+        return 1
+    fi
+
+
+    return 0
+}
+
+#===============================================================================
 # Built-in filtering rules
 #===============================================================================
 
