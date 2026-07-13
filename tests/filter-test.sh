@@ -12,6 +12,12 @@ FILES=(
 "/tmp/image.jpg"
 "/tmp/cache/index.php"
 "/tmp/vendor/test.php"
+
+"/home/example/public_html/plugins/system/bfnetwork/bfnetwork/HOST_ID"
+"/home/example/public_html/vendor/autoload.php"
+"/home/example/public_html/cache/test.php"
+
+
 )
 
 
