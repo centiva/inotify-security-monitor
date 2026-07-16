@@ -328,6 +328,73 @@ array_contains()
     return 1
 }
 
+
+#===============================================================================
+# Filter cache
+#===============================================================================
+
+filter_cache_init()
+{
+    if [ "${FILTER_CACHE_ENABLED:-false}" != "true" ]; then
+        return 0
+    fi
+
+    if [ -z "${FILTER_CACHE_FILE:-}" ]; then
+        return 0
+    fi
+
+    mkdir -p "$(dirname "$FILTER_CACHE_FILE")"
+
+    touch "$FILTER_CACHE_FILE"
+}
+
+
+filter_cache_lookup()
+{
+    local FILE="$1"
+
+    [ "${FILTER_CACHE_ENABLED:-false}" != "true" ] && return 1
+
+    [ ! -f "$FILTER_CACHE_FILE" ] && return 1
+
+
+    local RESULT
+
+    RESULT=$(grep -F "^${FILE}|" "$FILTER_CACHE_FILE" 2>/dev/null)
+
+    [ -z "$RESULT" ] && return 1
+
+
+    FILTER_REASON=$(echo "$RESULT" | cut -d'|' -f3)
+
+
+    if echo "$RESULT" | cut -d'|' -f2 | grep -q "IGNORE"; then
+        return 0
+    fi
+
+
+    return 1
+}
+
+
+filter_cache_store()
+{
+    local FILE="$1"
+    local DECISION="$2"
+    local REASON="$3"
+
+
+    [ "${FILTER_CACHE_ENABLED:-false}" != "true" ] && return 0
+
+
+    grep -Fv "${FILE}|" "$FILTER_CACHE_FILE" > "${FILTER_CACHE_FILE}.tmp" 2>/dev/null || true
+
+    echo "${FILE}|${DECISION}|${REASON}" >> "${FILTER_CACHE_FILE}.tmp"
+
+    mv "${FILTER_CACHE_FILE}.tmp" "$FILTER_CACHE_FILE"
+}
+
+
 #===============================================================================
 # Build effective filter lists
 #===============================================================================
@@ -657,7 +724,6 @@ is_excluded_directory()
 #===============================================================================
 # Main filtering decision
 #===============================================================================
-
 should_monitor_file()
 {
 
@@ -666,25 +732,60 @@ should_monitor_file()
     FILTER_REASON=""
 
 
-    if is_excluded_directory "$FILE"; then
+    #
+    # Check exclusion cache first
+    #
+
+    if filter_cache_lookup "$FILE"; then
         return 1
+    fi
+
+
+    #
+    # Evaluate exclusion rules
+    #
+
+    if is_excluded_directory "$FILE"; then
+
+        filter_cache_store \
+            "$FILE" \
+            "IGNORE" \
+            "$FILTER_REASON"
+
+        return 1
+
     fi
 
 
     if is_excluded_file "$FILE"; then
+
+        filter_cache_store \
+            "$FILE" \
+            "IGNORE" \
+            "$FILTER_REASON"
+
         return 1
+
     fi
 
 
     if is_excluded_extension "$FILE"; then
+
+        filter_cache_store \
+            "$FILE" \
+            "IGNORE" \
+            "$FILTER_REASON"
+
         return 1
+
     fi
 
 
     return 0
 }
 
-#===============================================================================
+
+#==============================================================================
 # Initialization
 #===============================================================================
 
@@ -693,9 +794,11 @@ ism_init()
 
     load_configuration || return 1
 
-    build_filter_lists
+build_filter_lists
 
-    validate_configuration || return 1
+filter_cache_init
+
+validate_configuration || return 1
 
     return 0
 }
