@@ -20,3 +20,8 @@ __pycache__/
 
 # Generated reports
 reports/*.txt
+
+# Runtime files
+logs/*.db
+logs/*.queue
+logs/*.log
