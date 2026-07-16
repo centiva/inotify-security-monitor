@@ -263,6 +263,20 @@ DEFAULT_EXCLUDE_DIRS=(
 
     "__pycache__"
 
+    "cache"
+    "tmp"
+    "temp"
+
+    "logs"
+    "log"
+
+    "sessions"
+    "session"
+
+    "backup"
+    "backups"
+    "bfnetwork"
+
 )
 
 
@@ -273,7 +287,6 @@ DEFAULT_EXCLUDE_FILES=(
 
 )
 
-
 DEFAULT_EXCLUDE_EXTENSIONS=(
 
     jpg
@@ -281,23 +294,40 @@ DEFAULT_EXCLUDE_EXTENSIONS=(
     png
     gif
     webp
-    bmp
     svg
-    ico
 
-    mp3
-    mp4
-    mov
-    avi
+    sql
+    sql.gz
+    dump
 
-    css
+    log
+    tmp
+    temp
+
+    cache
+    map
 
 )
 
+DEFAULT_EXCLUDE_DIR_PATTERNS=(
 
-DEFAULT_EXCLUDE_DIR_PATTERNS=()
+    "*/cache/*"
+    "*/tmp/*"
+    "*/temp/*"
+    "*/logs/*"
+    "*/sessions/*"
 
-DEFAULT_EXCLUDE_FILE_PATTERNS=()
+)
+
+DEFAULT_EXCLUDE_FILE_PATTERNS=(
+
+    "*.sql"
+    "*.tmp"
+    "*.temp"
+    "*.cache"
+    "*.log"
+
+)
 
 #DEFAULT_EXCLUDE_PATH_PATTERNS=()
 
