@@ -6,6 +6,18 @@
 # Inotify Security Monitor
 #===============================================================================
 
+
+set -Eeuo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+source "$PROJECT_ROOT/config/inotify-security-monitor.conf"
+
+source "$PROJECT_ROOT/installer/lib/constants.sh"
+source "$PROJECT_ROOT/installer/lib/output.sh"
+source "$PROJECT_ROOT/installer/lib/checks.sh"
+source "$PROJECT_ROOT/installer/lib/services.sh"
+
 run_doctor()
 {
     log_step "Running health checks"
@@ -44,3 +56,44 @@ run_doctor()
 
     return "$FAILED"
 }
+
+check_email_configuration()
+{
+    log_step "Checking email configuration"
+
+    local FAILED=0
+
+    if [ "${EMAIL_ENABLED:-false}" = "true" ]; then
+
+        if [ -n "${EMAIL_TO:-}" ]; then
+            log_ok "EMAIL_TO configured"
+        else
+            log_error "EMAIL_TO missing"
+            FAILED=1
+        fi
+
+
+        if [ "${#EMAIL_EVENTS[@]}" -gt 0 ]; then
+            log_ok "EMAIL_EVENTS configured"
+        else
+            log_error "EMAIL_EVENTS missing"
+            FAILED=1
+        fi
+
+
+        if [ "${#EMAIL_EXTENSIONS[@]}" -gt 0 ]; then
+            log_ok "EMAIL_EXTENSIONS configured"
+        else
+            log_error "EMAIL_EXTENSIONS missing"
+            FAILED=1
+        fi
+
+    else
+        log_warn "Email notifications disabled"
+    fi
+
+    return "$FAILED"
+}
+
+run_doctor
+check_email_configuration
