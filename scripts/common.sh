@@ -30,6 +30,14 @@ set -o pipefail
 
 CONFIG_FILE="${CONFIG_FILE:-/opt/inotify-security-monitor/config/inotify-security-monitor.conf}"
 
+# Load configuration
+if [ -f "$CONFIG_FILE" ]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_FILE"
+else
+    echo "Configuration file not found: $CONFIG_FILE" >&2
+    exit 1
+fi
 
 #===============================================================================
 # Runtime globals
