@@ -13,6 +13,7 @@ source "$PROJECT_ROOT/installer/lib/checks.sh"
 source "$PROJECT_ROOT/installer/lib/filesystem.sh"
 source "$PROJECT_ROOT/installer/lib/permissions.sh"
 source "$PROJECT_ROOT/installer/lib/services.sh"
+source "$PROJECT_ROOT/installer/doctor.sh"
 
 print_banner
 
