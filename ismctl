@@ -230,37 +230,68 @@ doctor() {
 
 
 
-    echo
-    echo "Monitoring:"
+echo
+echo "Monitoring:"
 
 
-    if [ -f "$CONFIG_FILE" ]; then
+if [ -f "$CONFIG_FILE" ]; then
 
-        WATCH_DIR=$(awk '
+    WATCH_DIRS_FOUND=0
+
+    while IFS= read -r WATCH_DIR
+    do
+
+        [ -z "$WATCH_DIR" ] && continue
+
+        WATCH_DIRS_FOUND=$((WATCH_DIRS_FOUND+1))
+
+        if [ -d "$WATCH_DIR" ]; then
+            echo "  ✓ $WATCH_DIR"
+        else
+            echo "  ✗ Missing: $WATCH_DIR"
+            ERRORS=$((ERRORS+1))
+        fi
+
+    done < <(
+        awk '
         /^WATCH_DIRS=/ {flag=1; next}
         /^\)/ {flag=0}
         flag && /"/ {
             gsub(/"/,"")
             print $1
-            exit
-        }' "$CONFIG_FILE")
+        }' "$CONFIG_FILE"
+    )
 
 
-        if [ -d "$WATCH_DIR" ]; then
-
-            echo "  ✓ Watch directory accessible"
-
-        else
-
-            echo "  ✗ Missing:"
-            echo "    $WATCH_DIR"
-            ERRORS=$((ERRORS+1))
-
-        fi
-
+    if [ "$WATCH_DIRS_FOUND" -eq 0 ]; then
+        echo "  ✗ No WATCH_DIRS configured"
+        ERRORS=$((ERRORS+1))
     fi
 
+fi
 
+
+
+echo
+echo "Filtering:"
+
+source "$CONFIG_FILE"
+
+if [ -f "$PROJECT_ROOT/scripts/common.sh" ]; then
+    source "$PROJECT_ROOT/scripts/common.sh" >/dev/null 2>&1 || true
+fi
+
+
+echo "  ✓ Excluded directories: ${#EXCLUDE_DIRS[@]}"
+echo "  ✓ Excluded patterns: ${#EXCLUDE_DIR_PATTERNS[@]}"
+
+EXT_COUNT=0
+
+if [ -n "${EXCLUDE_EXTENSIONS[*]}" ]; then
+    EXT_COUNT=${#EXCLUDE_EXTENSIONS[@]}
+fi
+
+echo "  ✓ Custom excluded extensions: $EXT_COUNT"
 
     echo
     echo "Resources:"
