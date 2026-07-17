@@ -1,0 +1,213 @@
+# ==========================================
+# Inotify Security Monitor Configuration
+# Example Configuration
+# ==========================================
+
+
+########################################
+# Email destination
+########################################
+
+EMAIL="admin@example.com"
+EMAIL_TO="admin@example.com"
+
+
+########################################
+# Host identifier
+########################################
+
+HOSTNAME="$(hostname)"
+
+
+########################################
+# Logging
+########################################
+
+LOG_FILE="./logs/inotify-security-monitor.log"
+QUEUE_FILE="./logs/inotify-security-monitor.queue"
+
+
+########################################
+# Archive
+########################################
+
+ARCHIVE_DIR="/var/lib/inotify-security-monitor/archive"
+
+
+########################################
+# Directories to monitor
+########################################
+
+WATCH_DIRS=(
+    "/var/www/example.com/public_html"
+)
+
+
+########################################
+# Exact directories to exclude
+########################################
+
+EXCLUDE_DIRS=(
+    "/var/www/example.com/public_html/cache"
+    "/var/www/example.com/public_html/tmp"
+)
+
+
+########################################
+# Directory wildcard exclusions
+########################################
+
+EXCLUDE_DIR_PATTERNS=(
+    "*/cache/*"
+    "*/tmp/*"
+    "*/vendor/*"
+    "*/node_modules/*"
+    "*/.sass-cache/*"
+    "*/scss-cache/*"
+)
+
+
+########################################
+# File wildcard exclusions
+########################################
+
+EXCLUDE_FILE_PATTERNS=(
+    "*.scss.cache"
+)
+
+
+########################################
+# Full path wildcard exclusions
+########################################
+
+EXCLUDE_PATH_PATTERNS=(
+)
+
+
+########################################
+# Exact files to exclude
+########################################
+
+EXCLUDE_FILES=(
+)
+
+
+########################################
+# Extensions to exclude
+########################################
+
+EXCLUDE_EXTENSIONS=(
+    "jpg"
+    "jpeg"
+    "png"
+    "gif"
+    "webp"
+    "svg"
+    "ico"
+    "css"
+    "sql"
+    "sql.gz"
+    "dump"
+    "log"
+    "tmp"
+    "temp"
+    "cache"
+)
+
+
+########################################
+# Events monitored for email
+########################################
+
+EMAIL_ENABLED=true
+ENABLE_EMAIL="yes"
+
+EMAIL_EVENTS=(
+    "CREATE"
+    "MODIFY"
+    "DELETE"
+    "MOVED_TO"
+)
+
+
+########################################
+# Extensions monitored
+########################################
+
+WATCH_EXTENSIONS=(
+    "php"
+    "phtml"
+    "phar"
+    "cgi"
+    "pl"
+    "py"
+    "sh"
+    "js"
+)
+
+
+########################################
+# Critical files
+########################################
+
+EMAIL_CRITICAL_FILES=(
+    "wp-config.php"
+    "configuration.php"
+    ".htaccess"
+    ".user.ini"
+    "composer.json"
+    "composer.lock"
+)
+
+EMAIL_ALWAYS_CRITICAL="yes"
+
+
+########################################
+# SMTP
+########################################
+
+SMTP_SERVER="localhost"
+SMTP_PORT=25
+
+
+########################################
+# Rate limiting
+########################################
+
+MAX_EMAILS_PER_HOUR=10
+MAX_EMAILS_PER_MINUTE=10
+EMAIL_COUNTER_FILE="./logs/email-counter"
+
+
+########################################
+# Summary
+########################################
+
+SUMMARY_INTERVAL=60
+
+
+########################################
+# Log rotation
+########################################
+
+MAX_LOG_SIZE_MB=50
+LOG_RETENTION_DAYS=30
+
+
+########################################
+# Filter cache
+########################################
+
+FILTER_CACHE_ENABLED=true
+FILTER_CACHE_FILE="./logs/filter-cache.db"
+
+FILTER_STATS_ENABLED=true
+FILTER_STATS_FILE="./logs/filter-stats.db"
+
+
+########################################
+# Features
+########################################
+
+ENABLE_HASH="yes"
+ENABLE_ARCHIVE="yes"
