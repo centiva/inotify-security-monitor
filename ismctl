@@ -147,6 +147,133 @@ check_config() {
 }
 
 
+show_config() {
+
+
+
+    CONFIG_FILE="$PROJECT_ROOT/config/inotify-security-monitor.conf"
+
+
+
+    echo
+
+    echo "Inotify Security Monitor Configuration"
+
+    echo
+
+
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+
+        echo "✗ Configuration file missing"
+
+        return 1
+
+    fi
+
+
+
+    source "$CONFIG_FILE"
+
+
+
+    echo "Configuration:"
+
+    echo "  File: $CONFIG_FILE"
+
+
+
+    echo
+
+    echo "Monitoring directories:"
+
+
+
+    for DIR in "${WATCH_DIRS[@]}"; do
+
+        echo "  $DIR"
+
+    done
+
+
+
+
+
+    echo
+
+    echo "Excluded directories:"
+
+
+
+    if [ "${#EXCLUDE_DIRS[@]}" -gt 0 ]; then
+
+        for DIR in "${EXCLUDE_DIRS[@]}"; do
+
+            echo "  $DIR"
+
+        done
+
+    else
+
+        echo "  none"
+
+    fi
+
+
+
+
+
+    echo
+
+    echo "Excluded patterns:"
+
+
+
+    if [ "${#EXCLUDE_DIR_PATTERNS[@]}" -gt 0 ]; then
+
+        for PATTERN in "${EXCLUDE_DIR_PATTERNS[@]}"; do
+
+            echo "  $PATTERN"
+
+        done
+
+    else
+
+        echo "  none"
+
+    fi
+
+
+
+
+
+    echo
+
+    echo "Email:"
+
+    echo "  Enabled: ${EMAIL_ENABLED:-false}"
+
+    echo "  SMTP: ${SMTP_SERVER:-not configured}"
+
+    echo "  Destination: ${EMAIL_TO:-not configured}"
+
+
+
+
+
+    echo
+
+    echo "Features:"
+
+    echo "  Hash: ${ENABLE_HASH:-no}"
+
+    echo "  Archive: ${ENABLE_ARCHIVE:-no}"
+
+
+
+}
+
+
 test_filter() {
 
     echo "Running filter tests..."
@@ -355,6 +482,7 @@ Commands:
   check-config   Validate configuration
   test-filter    Test filtering rules
   doctor         Run system health check
+  config         Show configuration summary
 
 EOF
 
@@ -381,6 +509,9 @@ case "$1" in
 
     doctor)
         doctor
+        ;;
+    config)
+        show_config
         ;;
 
     *)
