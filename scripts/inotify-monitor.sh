@@ -65,10 +65,7 @@ if ! should_monitor_file "$FILE"; then
             ;;
 
     esac
-
-
-
-    continue
+    return
 
 
 
