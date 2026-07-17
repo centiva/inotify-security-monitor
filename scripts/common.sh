@@ -319,6 +319,7 @@ DEFAULT_EXCLUDE_DIR_PATTERNS=(
 
 )
 
+
 DEFAULT_EXCLUDE_FILE_PATTERNS=(
 
     "*.sql"
@@ -327,6 +328,7 @@ DEFAULT_EXCLUDE_FILE_PATTERNS=(
     "*.cache"
     "*.log"
 
+    "*/administrator/logs/error.php"
 )
 
 #DEFAULT_EXCLUDE_PATH_PATTERNS=()
