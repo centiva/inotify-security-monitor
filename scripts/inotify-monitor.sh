@@ -46,11 +46,33 @@ process_event() {
 		return
 	fi
 
-	if ! should_monitor_file "$FILE"; then
-		log_filter "$FILE"
-		return
-	fi
+if ! should_monitor_file "$FILE"; then
 
+
+
+    case "$FILTER_REASON" in
+
+        excluded_extension|excluded_file_pattern)
+
+            # Ignore silently
+
+            ;;
+
+        *)
+
+            log_filter "$FILE"
+
+            ;;
+
+    esac
+
+
+
+    continue
+
+
+
+fi
 
 	HASH=""
 
